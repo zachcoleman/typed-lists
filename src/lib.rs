@@ -1,6 +1,8 @@
 use pyo3::prelude::*;
 
+mod list_gen;
 mod lists;
+mod string;
 
 #[pyfunction]
 #[pyo3(name = "_initialize_global_thread_pool")]
@@ -21,9 +23,11 @@ fn infer_type(obj: &PyAny) -> PyResult<String> {
 }
 
 #[pymodule]
-fn typed_lists(_py: Python, m: &PyModule) -> PyResult<()> {
+fn _typed_lists_ext(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(initialize_global_thread_pool, m)?)?;
     m.add_function(wrap_pyfunction!(infer_type, m)?)?;
-    m.add_class::<lists::TypedList>()?;
+    m.add_class::<lists::IntTypedList>()?;
+    m.add_class::<lists::FloatTypedList>()?;
+    m.add_class::<string::StringTypedList>()?;
     Ok(())
 }

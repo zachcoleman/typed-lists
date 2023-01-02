@@ -1,2 +1,2 @@
 # typed-lists
-Fast, typed lists for Python implemented in Rust
+Parallelized, typed lists for Python implemented in Rust
