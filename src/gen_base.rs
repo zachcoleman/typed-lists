@@ -65,18 +65,25 @@ macro_rules! make_base {
                     self.data.extend(item.data.clone());
                 }
 
-                // should typed-lists append like built-in lists?
-                // fn __add__(&self, other: &PyAny) -> PyResult<Self> {
-                //     self.add(other)
-                // }
-
-                // should typed-lists repeat like built-in lists?
-                // fn __mul__(&self, other: &PyAny) -> PyResult<Self> {
-                //     self.mul(other)
-                // }
-
+                /// ** Magic Methods ** ///
                 fn __len__(&self) -> PyResult<usize> {
                     self.len()
+                }
+
+                fn __bool__(&self) -> PyResult<bool> {
+                    Ok(self.data.len() > 0)
+                }
+
+                fn __contains__(&self, item: $type) -> PyResult<bool> {
+                    Ok(self.data.par_iter().any(|x| x == &item))
+                }
+
+                fn __eq__(&self, other: &PyAny) -> PyResult<bool> {
+                    if let Ok(other) = other.extract::<[< $name TypedList >]>() {
+                        Ok(self.data.par_iter().zip(other.data.par_iter()).all(|(a, b)| a == b))
+                    } else {
+                        Ok(false)
+                    }
                 }
 
                 fn __iter__(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
@@ -115,6 +122,19 @@ macro_rules! make_base {
                     Ok(())
                 }
 
+                fn __delitem__(&mut self, ix: isize) -> PyResult<()> {
+                    let len = self.data.len();
+                    if ix < -(len as isize) || ix >= (len as isize){
+                        return Err(PyIndexError::new_err("Index out of range"));
+                    }
+                    if ix < 0 {
+                        self.data.remove((len as isize + ix) as usize);
+                        return Ok(());
+                    }
+                    self.data.remove(ix as usize);
+                    Ok(())
+                }
+
                 fn __repr__(&self) -> PyResult<String> {
                     if self.data.len() <= 5 {
                         return Ok(format!("{}TypedList ({:?})", stringify!($name), &self.data[..]));
@@ -125,6 +145,16 @@ macro_rules! make_base {
                 fn __str__(&self) -> PyResult<String> {
                     self.__repr__()
                 }
+
+                // + should typed-lists append like built-in lists?
+                // * should typed-lists repeat like built-in lists?
+                // this is  not how numpy works, but it is how python lists work
+                // fn __add__(&self, other: &PyAny) -> PyResult<Self> {
+                //     self.add(other)
+                // }
+                // fn __mul__(&self, other: &PyAny) -> PyResult<Self> {
+                //     self.mul(other)
+                // }
             }
         }
     };
