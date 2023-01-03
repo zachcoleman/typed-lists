@@ -1,6 +1,10 @@
 use pyo3::prelude::*;
 
+// codegen macros
+mod base_gen;
 mod list_gen;
+
+// modules
 mod lists;
 mod string;
 

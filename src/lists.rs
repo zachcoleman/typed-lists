@@ -3,10 +3,14 @@ use pyo3::prelude::*;
 use rayon::prelude::*;
 use std::collections::{HashMap, HashSet};
 
+use crate::make_base;
 use crate::make_typed_list;
 
-make_typed_list!(Int, isize);
-make_typed_list!(Float, f64);
+make_base!(Int, isize);
+make_base!(Float, f64);
+make_base!(String, String);
+// make_typed_list!(Int, isize);
+// make_typed_list!(Float, f64);
 
 #[pymethods]
 impl IntTypedList {
@@ -29,6 +33,7 @@ impl IntTypedList {
                 )
                 .into_iter()
                 .collect(),
+            _ix: 0,
         })
     }
     fn count(&self) -> PyResult<HashMap<isize, usize>> {
