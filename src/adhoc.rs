@@ -1,10 +1,10 @@
-use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::PyAny;
 use rayon::prelude::*;
 
 use crate::lists::FloatTypedList;
-use crate::lists::IntTypedList;
+// use crate::lists::IntTypedList;
 use crate::lists::StringTypedList;
 
 /// FloatTypedList Sorting ///
