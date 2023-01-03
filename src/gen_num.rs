@@ -158,10 +158,6 @@ macro_rules! make_numeric_ops {
                 fn __truediv__(&self, other: &PyAny) -> PyResult<Self> {
                     self.div(other)
                 }
-
-                fn __floordiv__(&self, other: &PyAny) -> PyResult<Self> {
-                    self.div(other)
-                }
             }
         }
     };
