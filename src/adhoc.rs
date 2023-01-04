@@ -30,6 +30,28 @@ impl BoolTypedList {
         Ok(sum)
     }
 }
+// ==================== //
+
+/// IntTypedList Modulus ///
+#[pymethods]
+impl IntTypedList {
+    fn __mod__(&self, other: &PyAny) -> PyResult<Self> {
+        if let Ok(other) = other.extract::<isize>() {
+            let data = self.data.par_iter().map(|x| x % other).collect();
+            return Ok(IntTypedList { data: data, _ix: 0 });
+        } else if let Ok(other) = other.extract::<Self>() {
+            let data = self
+                .data
+                .par_iter()
+                .zip(other.data.par_iter())
+                .map(|(a, b)| a % b)
+                .collect();
+            return Ok(IntTypedList { data: data, _ix: 0 });
+        }
+        Err(PyTypeError::new_err("Unsupported operand type(s) for %"))
+    }
+}
+// ==================== //
 
 /// FloatTypedList Sorting ///
 #[pymethods]
