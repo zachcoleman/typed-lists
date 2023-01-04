@@ -99,7 +99,6 @@ macro_rules! make_numeric_ops {
                     Ok(self.data.par_iter().sum())
                 }
 
-                #[pyo3(text_signature = "($self, other: Union[[< $name TypedList >], int], /)")]
                 fn add(&self, other: &PyAny) -> PyResult<Self> {
                     if let Ok(other) = other.extract::<Self>() {
                         return other.add_list(self);
@@ -114,7 +113,6 @@ macro_rules! make_numeric_ops {
                     self.add(other)
                 }
 
-                #[pyo3(text_signature = "($self, other: Union[[< $name TypedList >], int], /)")]
                 fn sub(&self, other: &PyAny) -> PyResult<Self> {
                     if let Ok(other) = other.extract::<Self>() {
                         return other.sub_list(self);
@@ -129,7 +127,6 @@ macro_rules! make_numeric_ops {
                     self.sub(other)
                 }
 
-                #[pyo3(text_signature = "($self, other: Union[[< $name TypedList >], int], /)")]
                 fn mul(&self, other: &PyAny) -> PyResult<Self> {
                     if let Ok(other) = other.extract::<Self>() {
                         return other.mul_list(self);
@@ -144,7 +141,6 @@ macro_rules! make_numeric_ops {
                     self.mul(other)
                 }
 
-                #[pyo3(text_signature = "($self, other: Union[[< $name TypedList >], int], /)")]
                 fn div(&self, other: &PyAny) -> PyResult<Self> {
                     if let Ok(other) = other.extract::<Self>() {
                         return other.div_list(self);

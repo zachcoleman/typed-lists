@@ -1,48 +1,47 @@
 from itertools import chain
 from typing import Iterable, Optional, Union
 
-from ._typed_lists_ext import FloatTypedList, IntTypedList, StringTypedList
+from ._typed_lists_ext import (
+    BoolTypedList,
+    FloatTypedList,
+    IntTypedList,
+    StringTypedList,
+)
+
+STR_MAPPING = {
+    "bool": BoolTypedList,
+    "float": FloatTypedList,
+    "int": IntTypedList,
+    "string": StringTypedList,
+}
+
+TYPE_MAPPING = {
+    bool: BoolTypedList,
+    float: FloatTypedList,
+    int: IntTypedList,
+    str: StringTypedList,
+}
 
 
 def TypedList(
-    data: Optional[Iterable] = None, type: Optional[str] = None
+    data: Optional[Iterable] = None, dtype: Optional[str] = None
 ) -> Union[IntTypedList, FloatTypedList, StringTypedList]:
     """Create a typed list. Function name is capitalized to emulate a class."""
-    if data is None and type is None:
+    if data is None and dtype is None:
         raise ValueError("Must specify either data or type")
 
-    if data is not None and type is not None:
-        if type == "int":
-            return IntTypedList(data)
-        elif type == "float":
-            return FloatTypedList(data)
-        elif type == "string":
-            return StringTypedList(data)
-        else:
-            raise ValueError("Invalid type")
+    if data is not None and dtype is not None:
+        if dtype in STR_MAPPING:
+            return STR_MAPPING[dtype](data)
 
-    # use specified type
-    if data is None:
-        if type == "int":
-            return IntTypedList([])
-        elif type == "float":
-            return FloatTypedList([])
-        elif type == "string":
-            return StringTypedList([])
-        else:
-            raise ValueError("Invalid type")
+    if data is None and dtype is not None:
+        if dtype in STR_MAPPING:
+            return STR_MAPPING[dtype]([])
 
-    # infer type from data
-    if type is None:
+    if data is not None and dtype is None:
         _iter = iter(data)
         x = next(_iter)
-        if isinstance(x, int):
-            return IntTypedList(chain([x], _iter))
-        elif isinstance(x, float):
-            return FloatTypedList(chain([x], _iter))
-        elif isinstance(x, str):
-            return StringTypedList(chain([x], _iter))
-        else:
-            raise ValueError("Invalid data")
+        if type(x) in TYPE_MAPPING:
+            return TYPE_MAPPING[type(x)](chain([x], _iter))
 
     raise ValueError("Invalid data")

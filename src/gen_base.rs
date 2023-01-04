@@ -78,14 +78,6 @@ macro_rules! make_base {
                     Ok(self.data.par_iter().any(|x| x == &item))
                 }
 
-                fn __eq__(&self, other: &PyAny) -> PyResult<bool> {
-                    if let Ok(other) = other.extract::<[< $name TypedList >]>() {
-                        Ok(self.data.par_iter().zip(other.data.par_iter()).all(|(a, b)| a == b))
-                    } else {
-                        Ok(false)
-                    }
-                }
-
                 fn __iter__(mut slf: PyRefMut<'_, Self>) -> PyRefMut<'_, Self> {
                     slf._ix = 0;
                     slf
@@ -99,27 +91,123 @@ macro_rules! make_base {
                     Some(slf.data[slf._ix - 1].to_object(slf.py()))
                 }
 
-                fn __getitem__(&self, ix: isize) -> PyResult<$type> {
-                    if ix < -(self.data.len() as isize) || ix >= (self.data.len() as isize){
-                        return Err(PyIndexError::new_err("Index out of range"));
+                fn __getitem__(slf: PyRefMut<'_, Self>, ix: SliceIndexorBoolTypedList) -> PyResult<PyObject> {
+                    match ix {
+                        SliceIndexorBoolTypedList::Index(ix) => {
+                            if ix < -(slf.data.len() as isize) || ix >= (slf.data.len() as isize){
+                                return Err(PyIndexError::new_err("Index out of range"));
+                            }
+                            if ix < 0 {
+                                return Ok(slf.data[(slf.data.len() as isize + ix) as usize].clone().to_object(slf.py()));
+                            }
+                            Ok(slf.data[ix as usize].clone().to_object(slf.py()))
+                        }
+                        SliceIndexorBoolTypedList::Slice(slice) => {
+                            let indices = slice.indices(slf.data.len().try_into().unwrap())?;
+                            let start = indices.start;
+                            let stop = indices.stop;
+                            let step = indices.step;
+                            let mut data = vec![];
+                            let mut indices = vec![];
+                            let mut curr = start;
+                            while (curr > stop && step < 0) || (curr < stop && step > 0){
+                                indices.push(curr);
+                                curr += step;
+                            }
+                            for ix in indices{
+                                data.push(slf.data[ix as usize].clone());
+                            }
+                            Ok(
+                                PyCell::new(
+                                    slf.py(),
+                                    [< $name TypedList >] {
+                                        data: data,
+                                        _ix: 0,
+                                    }
+                                ).unwrap().into()
+                            )
+                        }
+                        SliceIndexorBoolTypedList::BoolTypedList(b) => {
+                            let mut data = vec![];
+                            for (i, x) in slf.data.iter().enumerate(){
+                                if b.data[i]{
+                                    data.push(x.clone());
+                                }
+                            }
+                            Ok(
+                                PyCell::new(
+                                    slf.py(),
+                                    [< $name TypedList >] {
+                                        data: data,
+                                        _ix: 0,
+                                    }
+                                ).unwrap().into()
+                            )
+                        }
                     }
-                    if ix < 0 {
-                        return Ok(self.data[(self.data.len() as isize + ix) as usize].clone());
-                    }
-                    Ok(self.data[ix as usize].clone())
                 }
 
-                fn __setitem__(&mut self, ix: isize, value: $type) -> PyResult<()> {
-                    let len = self.data.len();
-                    if ix < -(len as isize) || ix >= (len as isize){
-                        return Err(PyIndexError::new_err("Index out of range"));
+                fn __setitem__(&mut self, ix: SliceIndexorBoolTypedList, value: &PyAny ) -> PyResult<()> {
+                    match ix {
+                        SliceIndexorBoolTypedList::Index(ix) => {
+                            if let Ok(v) = value.extract::<$type>(){
+                                let l = self.data.len();
+                                if ix < -(l as isize) || ix >= (l as isize){
+                                    return Err(PyIndexError::new_err("Index out of range"));
+                                }
+                                if ix < 0 {
+                                    self.data[(l as isize + ix) as usize] = v.clone();
+                                }
+                                self.data[ix as usize] = v.clone();
+                                Ok(())
+                            }
+                            else{
+                                Err(PyTypeError::new_err("Invalid type"))
+                            }
+                        }
+                        SliceIndexorBoolTypedList::Slice(slice) => {
+                            if let Ok(vs) = value.extract::<[< $name TypedList >]>(){
+                                let indices = slice.indices(self.data.len().try_into().unwrap())?;
+                                let start = indices.start;
+                                let stop = indices.stop;
+                                let step = indices.step;
+                                let mut indices = vec![];
+                                let mut curr = start;
+                                while (curr > stop && step < 0) || (curr < stop && step > 0){
+                                    indices.push(curr);
+                                    curr += step;
+                                }
+                                if indices.len() != vs.data.len(){
+                                    return Err(PyValueError::new_err("Slice length mismatch"));
+                                } else{
+                                    for (ix, v) in indices.iter().zip(vs.data.iter()){
+                                        self.data[*ix as usize] = v.clone();
+                                    }
+                                }
+                                Ok(())
+                            }
+                            else{
+                                Err(PyTypeError::new_err("Invalid type"))
+                            }
+                        }
+                        SliceIndexorBoolTypedList::BoolTypedList(b) => {
+                            if let Ok(vs) = value.extract::<[< $name TypedList >]>(){
+                                if b.data.len() != vs.data.len(){
+                                    return Err(PyValueError::new_err("Slice length mismatch"));
+                                } else{
+                                    for (i, x) in b.data.iter().enumerate(){
+                                        if *x{
+                                            self.data[i] = vs.data[i].clone();
+                                        }
+                                    }
+                                }
+                                Ok(())
+                            }
+                            else{
+                                Err(PyTypeError::new_err("Invalid type"))
+                            }
+                        }
                     }
-                    if ix < 0 {
-                        self.data[(len as isize + ix) as usize] = value;
-                        return Ok(());
-                    }
-                    self.data[ix as usize] = value;
-                    Ok(())
                 }
 
                 fn __delitem__(&mut self, ix: isize) -> PyResult<()> {

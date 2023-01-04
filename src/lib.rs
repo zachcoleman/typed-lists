@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 
 // codegen macros
 mod gen_base;
+mod gen_bool;
+mod gen_cmp;
 mod gen_hash;
 mod gen_num;
 mod gen_sort;
@@ -27,5 +29,6 @@ fn _typed_lists_ext(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<lists::IntTypedList>()?;
     m.add_class::<lists::FloatTypedList>()?;
     m.add_class::<lists::StringTypedList>()?;
+    m.add_class::<lists::BoolTypedList>()?;
     Ok(())
 }
