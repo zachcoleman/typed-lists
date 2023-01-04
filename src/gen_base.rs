@@ -233,16 +233,6 @@ macro_rules! make_base {
                 fn __str__(&self) -> PyResult<String> {
                     self.__repr__()
                 }
-
-                // + should typed-lists append like built-in lists?
-                // * should typed-lists repeat like built-in lists?
-                // this is  not how numpy works, but it is how python lists work
-                // fn __add__(&self, other: &PyAny) -> PyResult<Self> {
-                //     self.add(other)
-                // }
-                // fn __mul__(&self, other: &PyAny) -> PyResult<Self> {
-                //     self.mul(other)
-                // }
             }
         }
     };
