@@ -6,6 +6,9 @@ macro_rules! make_cmp {
             impl [< $name TypedList >] {
                 fn __richcmp__(&self, other: &PyAny, op: CompareOp) -> PyResult<BoolTypedList> {
                     if let Ok(other) = other.extract::<Self>() {
+                        if self.len().unwrap() != other.len().unwrap(){
+                            return Err(PyValueError::new_err("Lengths of lists must match"));
+                        }
                         match op {
                             CompareOp::Eq => {
                                 return Ok(BoolTypedList{
@@ -87,7 +90,6 @@ macro_rules! make_cmp {
                     }
                     Err(PyErr::new::<pyo3::exceptions::PyTypeError, _>("Cannot compare"))
                 }
-
             }
         }
     };

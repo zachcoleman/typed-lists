@@ -49,6 +49,9 @@ macro_rules! make_numeric_ops {
 
             impl [< BroadcastTo $name TypedList >] for [< $name TypedList >] {
                 fn add_list(&self, other: &Self) -> PyResult<Self> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()
@@ -58,6 +61,9 @@ macro_rules! make_numeric_ops {
                     Ok([< $name TypedList >] { data: data, _ix: 0 })
                 }
                 fn sub_list(&self, other: &Self) -> PyResult<Self> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()
@@ -67,6 +73,9 @@ macro_rules! make_numeric_ops {
                     Ok([< $name TypedList >] { data: data, _ix: 0 })
                 }
                 fn mul_list(&self, other: &Self) -> PyResult<Self> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()
@@ -76,6 +85,9 @@ macro_rules! make_numeric_ops {
                     Ok([< $name TypedList >] { data: data, _ix: 0 })
                 }
                 fn div_list(&self, other: &Self) -> PyResult<Self> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     if self.data.par_iter().any(|x| *x == (0 as $type)) {
                         return Err(PyValueError::new_err("Division by zero"));
                     }

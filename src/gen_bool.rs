@@ -37,6 +37,9 @@ macro_rules! make_bool {
 
             impl [< BroadcastTo $name TypedList >] for [< $name TypedList >] {
                 fn and_list(&self, other: &[< $name TypedList >]) -> PyResult<[< $name TypedList >]> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()
@@ -46,6 +49,9 @@ macro_rules! make_bool {
                     Ok([< $name TypedList >] { data: data, _ix: 0 })
                 }
                 fn or_list(&self, other: &[< $name TypedList >]) -> PyResult<[< $name TypedList >]> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()
@@ -55,6 +61,9 @@ macro_rules! make_bool {
                     Ok([< $name TypedList >] { data: data, _ix: 0 })
                 }
                 fn xor_list(&self, other: &[< $name TypedList >]) -> PyResult<[< $name TypedList >]> {
+                    if self.len().unwrap() != other.len().unwrap(){
+                        return Err(PyValueError::new_err("Lengths of lists must match"));
+                    }
                     let data = self
                         .data
                         .par_iter()

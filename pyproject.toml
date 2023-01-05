@@ -22,9 +22,9 @@ repository = "https://github.com/zachcoleman/typed-lists"
 
 [project.optional-dependencies]
 dev = [
+  "bump2version",
   "pre-commit",
   "pytest",
-  "pytest-cov[all]"
 ]
 
 [build-system]
