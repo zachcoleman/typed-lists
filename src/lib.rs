@@ -5,6 +5,7 @@ mod gen_base;
 mod gen_bool;
 mod gen_cmp;
 mod gen_hash;
+mod gen_min;
 mod gen_num;
 mod gen_sort;
 
@@ -26,9 +27,9 @@ fn initialize_global_thread_pool(num_threads: usize) -> PyResult<()> {
 #[pymodule]
 fn _typed_lists_ext(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(initialize_global_thread_pool, m)?)?;
-    m.add_class::<lists::IntTypedList>()?;
-    m.add_class::<lists::FloatTypedList>()?;
-    m.add_class::<lists::StringTypedList>()?;
     m.add_class::<lists::BoolTypedList>()?;
+    m.add_class::<lists::FloatTypedList>()?;
+    m.add_class::<lists::IntTypedList>()?;
+    m.add_class::<lists::StringTypedList>()?;
     Ok(())
 }

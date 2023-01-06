@@ -7,7 +7,7 @@ use rayon::prelude::*;
 
 use crate::lists::{BoolTypedList, FloatTypedList, IntTypedList, StringTypedList};
 
-/// Indexing for slice+ints ///
+/// Indexing for Slice+Int+BoolTypedList ///
 #[derive(FromPyObject)]
 pub enum SliceIndexorBoolTypedList<'a> {
     Slice(&'a PySlice),
@@ -49,16 +49,6 @@ impl IntTypedList {
             return Ok(IntTypedList { data: data, _ix: 0 });
         }
         Err(PyTypeError::new_err("Unsupported operand type(s) for %"))
-    }
-}
-// ==================== //
-
-/// FloatTypedList Sorting ///
-#[pymethods]
-impl FloatTypedList {
-    fn sort(&mut self) -> PyResult<()> {
-        self.data.par_sort_by(|a, b| a.partial_cmp(b).unwrap());
-        Ok(())
     }
 }
 // ==================== //
@@ -111,6 +101,142 @@ impl StringTypedList {
             return other.add_list(self);
         }
         Err(PyTypeError::new_err("Unsupported operand type(s) for +"))
+    }
+}
+// ==================== //
+
+/// Implement `__pow__` methods ///
+#[pymethods]
+impl IntTypedList {
+    fn __pow__(&self, other: &PyAny, modulo: Option<&PyAny>) -> PyResult<Self> {
+        match (other, modulo) {
+            (other, None) => {
+                if let Ok(other) = other.extract::<isize>() {
+                    let data = self.data.par_iter().map(|x| x.pow(other as u32)).collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                } else if let Ok(other) = other.extract::<Self>() {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a.pow(*b as u32))
+                        .collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                }
+                return Err(PyTypeError::new_err("Unsupported operand type(s) for **"));
+            }
+            (other, Some(modulo)) => {
+                if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<isize>(), modulo.extract::<isize>())
+                {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .map(|x| x.pow(other as u32) % modulo)
+                        .collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<Self>(), modulo.extract::<Self>())
+                {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .zip(modulo.data.par_iter())
+                        .map(|((a, b), c)| a.pow(*b as u32) % *c)
+                        .collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<isize>(), modulo.extract::<Self>())
+                {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(modulo.data.par_iter())
+                        .map(|(a, b)| a.pow(other as u32) % *b)
+                        .collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<Self>(), modulo.extract::<isize>())
+                {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a.pow(*b as u32) % modulo)
+                        .collect();
+                    return Ok(IntTypedList { data: data, _ix: 0 });
+                }
+                return Err(PyTypeError::new_err("Unsupported operand type(s) for **"));
+            }
+        }
+    }
+}
+
+#[pymethods]
+impl FloatTypedList {
+    fn __pow__(&self, other: &PyAny, modulo: Option<&PyAny>) -> PyResult<Self> {
+        match (other, modulo) {
+            (other, None) => {
+                if let Ok(other) = other.extract::<f64>() {
+                    let data: Vec<f64> = self.data.par_iter().map(|x| x.powf(other)).collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                } else if let Ok(other) = other.extract::<Self>() {
+                    let data: Vec<f64> = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a.powf(*b))
+                        .collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                }
+                return Err(PyTypeError::new_err("Unsupported operand type(s) for **"));
+            }
+            (other, Some(modulo)) => {
+                if let (Ok(other), Ok(modulo)) = (other.extract::<f64>(), modulo.extract::<f64>()) {
+                    let data: Vec<f64> = self
+                        .data
+                        .par_iter()
+                        .map(|x| x.powf(other) % modulo)
+                        .collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<Self>(), modulo.extract::<Self>())
+                {
+                    let data: Vec<f64> = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .zip(modulo.data.par_iter())
+                        .map(|((a, b), c)| a.powf(*b) % c)
+                        .collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<Self>(), modulo.extract::<f64>())
+                {
+                    let data: Vec<f64> = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a.powf(*b) % modulo)
+                        .collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                } else if let (Ok(other), Ok(modulo)) =
+                    (other.extract::<f64>(), modulo.extract::<Self>())
+                {
+                    let data: Vec<f64> = self
+                        .data
+                        .par_iter()
+                        .zip(modulo.data.par_iter())
+                        .map(|(a, b)| a.powf(other) % b)
+                        .collect();
+                    return Ok(FloatTypedList { data: data, _ix: 0 });
+                }
+                return Err(PyTypeError::new_err(
+                    "Unsupported operand type(s) for ** (and %)",
+                ));
+            }
+        }
     }
 }
 // ==================== //

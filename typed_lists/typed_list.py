@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Iterable, Optional, Union
+from typing import Iterable, Optional, Type, Union
 
 from ._typed_lists_ext import (
     BoolTypedList,
@@ -7,13 +7,6 @@ from ._typed_lists_ext import (
     IntTypedList,
     StringTypedList,
 )
-
-STR_MAPPING = {
-    "bool": BoolTypedList,
-    "float": FloatTypedList,
-    "int": IntTypedList,
-    "string": StringTypedList,
-}
 
 TYPE_MAPPING = {
     bool: BoolTypedList,
@@ -24,24 +17,34 @@ TYPE_MAPPING = {
 
 
 def TypedList(
-    data: Optional[Iterable] = None, dtype: Optional[str] = None
+    input: Optional[Union[Iterable, Type]], dtype: Optional[Type] = None
 ) -> Union[IntTypedList, FloatTypedList, StringTypedList]:
-    """Create a typed list. Function name is capitalized to emulate a class."""
-    if data is None and dtype is None:
-        raise ValueError("Must specify either data or type")
+    """Create a typed list. Function name is capitalized to emulate a class.
 
-    if data is not None and dtype is not None:
-        if dtype in STR_MAPPING:
-            return STR_MAPPING[dtype](data)
+    Allowed argument combinations:
+        - input: iterable (non-empty), dtype: None (inferred from first element)
+        - input: iterable, dtype: type (must match first element or be empty)
+        - input: type, dtype: None (empty list of given type)
 
-    if data is None and dtype is not None:
-        if dtype in STR_MAPPING:
-            return STR_MAPPING[dtype]([])
+    Args:
+        input: iterable or type
+        dtype: type (optional)
 
-    if data is not None and dtype is None:
-        _iter = iter(data)
-        x = next(_iter)
-        if type(x) in TYPE_MAPPING:
-            return TYPE_MAPPING[type(x)](chain([x], _iter))
+    Returns:
+        Union[BoolTypedList, IntTypedList, FloatTypedList, StringTypedList]
 
-    raise ValueError("Invalid data")
+    """
+    if isinstance(input, type):
+        if input in TYPE_MAPPING:
+            return TYPE_MAPPING[input]([])
+        raise ValueError("Invalid type")
+    elif isinstance(input, Iterable):
+        # infer type from first element
+        if dtype is None:
+            _iter = iter(input)
+            x = next(_iter)
+            if type(x) in TYPE_MAPPING:
+                return TYPE_MAPPING[type(x)](chain([x], _iter))
+        elif dtype in TYPE_MAPPING:
+            return TYPE_MAPPING[dtype](input)
+    raise ValueError("Invalid input. Must be an iterable or a type")
