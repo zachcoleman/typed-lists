@@ -76,3 +76,48 @@ def test_extend(list1, list2, expected):
 )
 def test_len(list1, expected):
     assert len(list1) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, index, expected",
+    [
+        (TypedList(range(10)), 0, 0),
+        (TypedList(range(10)), slice(1, 4, 1), TypedList(range(1, 4, 1))),
+        (
+            TypedList(range(10)),
+            BoolTypedList([i % 2 == 0 for i in range(10)]),
+            TypedList(range(0, 10, 2)),
+        ),
+    ],
+)
+def test_getitem(list1, index, expected):
+    assert list1[index] == expected
+
+
+@pytest.mark.parametrize(
+    "list1, index, expected",
+    [
+        (TypedList(range(10)), 0, -100),
+    ],
+)
+def test_setitem(list1, index, expected):
+    list1[index] = expected
+    assert list1[index] == expected
+
+
+@pytest.mark.parametrize(
+    "list1, index, expected",
+    [
+        (TypedList(range(10)), 0, TypedList(range(1, 10, 1))),
+        (TypedList(range(10)), slice(0, 4, 1), TypedList(range(4, 10, 1))),
+        (
+            TypedList(range(10)),
+            BoolTypedList([i % 2 == 0 for i in range(10)]),
+            TypedList(range(0, 10, 2)),
+        ),
+    ],
+)
+def test_delitem(list1, index, expected):
+    del list1[index]
+    print(list1, expected)
+    assert list1 == expected

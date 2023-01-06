@@ -210,18 +210,64 @@ macro_rules! make_base {
                     }
                 }
 
-                fn __delitem__(&mut self, ix: isize) -> PyResult<()> {
-                    let len = self.data.len();
-                    if ix < -(len as isize) || ix >= (len as isize){
-                        return Err(PyIndexError::new_err("Index out of range"));
+                fn __delitem__(&mut self, ix: SliceIndexorBoolTypedList) -> PyResult<()>{
+                    match ix {
+                        SliceIndexorBoolTypedList::Index(ix) => {
+                            let len = self.data.len();
+                            if ix < -(len as isize) || ix >= (len as isize){
+                                return Err(PyIndexError::new_err("Index out of range"));
+                            }
+                            if ix < 0 {
+                                self.data.remove((len as isize + ix) as usize);
+                                return Ok(());
+                            }
+                            self.data.remove(ix as usize);
+                            Ok(())
+                        }
+                        SliceIndexorBoolTypedList::Slice(slice) => {
+                            let indices = slice.indices(self.data.len().try_into().unwrap())?;
+                            let start = indices.start;
+                            let stop = indices.stop;
+                            let step = indices.step;
+                            let mut indices = vec![];
+                            let mut curr = start;
+                            while (curr > stop && step < 0) || (curr < stop && step > 0){
+                                indices.push(curr);
+                                curr += step;
+                            }
+                            indices.par_sort_unstable(); // need to sort so always delete from the end
+                            for ix in indices.iter().rev(){
+                                self.data.remove(*ix as usize);
+                            }
+                            Ok(())
+                        }
+                        SliceIndexorBoolTypedList::BoolTypedList(b) => {
+                            let mut indices = vec![];
+                            for (i, x) in b.data.iter().enumerate(){
+                                if *x{
+                                    indices.push(i);
+                                }
+                            }
+                            for ix in indices.iter().rev(){
+                                self.data.remove(*ix as usize);
+                            }
+                            Ok(())
+                        }
                     }
-                    if ix < 0 {
-                        self.data.remove((len as isize + ix) as usize);
-                        return Ok(());
-                    }
-                    self.data.remove(ix as usize);
-                    Ok(())
                 }
+
+                // fn __delitem__(&mut self, ix: isize) -> PyResult<()> {
+                //     let len = self.data.len();
+                //     if ix < -(len as isize) || ix >= (len as isize){
+                //         return Err(PyIndexError::new_err("Index out of range"));
+                //     }
+                //     if ix < 0 {
+                //         self.data.remove((len as isize + ix) as usize);
+                //         return Ok(());
+                //     }
+                //     self.data.remove(ix as usize);
+                //     Ok(())
+                // }
 
                 fn __repr__(&self) -> PyResult<String> {
                     if self.data.len() <= 5 {
