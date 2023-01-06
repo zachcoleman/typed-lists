@@ -256,6 +256,35 @@ macro_rules! make_base {
                     }
                 }
 
+                fn index(&self, value: $type) -> Option<isize>{
+                    self.data
+                        .par_iter()
+                        .enumerate()
+                        .find_first(|(_, x)| *x == &value)
+                        .map(|(i, _)| i as isize)
+                        .or_else(|| None)
+                }
+
+                fn find_any(&self, value: $type) -> Option<isize>{
+                    self.data
+                        .par_iter()
+                        .enumerate()
+                        .find_any(|(_, x)| *x == &value)
+                        .map(|(i, _)| i as isize)
+                        .or_else(|| None)
+                }
+
+                fn find_all(&self, value: $type) -> PyResult<IntTypedList>{
+                    let mut indices = self.data
+                        .par_iter()
+                        .enumerate()
+                        .filter(|(_, x)| *x == &value)
+                        .map(|(i, _)| i as isize)
+                        .collect::<Vec<isize>>();
+                    indices.sort_unstable();
+                    Ok(IntTypedList{data: indices, _ix: 0})
+                }
+
                 fn __repr__(&self) -> PyResult<String> {
                     if self.data.len() <= 5 {
                         return Ok(format!("{}TypedList ({:?})", stringify!($name), &self.data[..]));
