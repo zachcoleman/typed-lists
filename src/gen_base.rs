@@ -256,19 +256,6 @@ macro_rules! make_base {
                     }
                 }
 
-                // fn __delitem__(&mut self, ix: isize) -> PyResult<()> {
-                //     let len = self.data.len();
-                //     if ix < -(len as isize) || ix >= (len as isize){
-                //         return Err(PyIndexError::new_err("Index out of range"));
-                //     }
-                //     if ix < 0 {
-                //         self.data.remove((len as isize + ix) as usize);
-                //         return Ok(());
-                //     }
-                //     self.data.remove(ix as usize);
-                //     Ok(())
-                // }
-
                 fn __repr__(&self) -> PyResult<String> {
                     if self.data.len() <= 5 {
                         return Ok(format!("{}TypedList ({:?})", stringify!($name), &self.data[..]));
