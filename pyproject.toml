@@ -1,6 +1,6 @@
 [project]
 name = "typed-lists"
-version = "0.2.0"
+version = "1.0.0"
 requires-python = ">=3.7"
 readme = "README.md"
 license = {text="Apache 2.0"}
