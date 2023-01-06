@@ -134,3 +134,32 @@ def test_mul(list1, op, list2, expected):
 def test_mul_error(list1, list2):
     with pytest.raises(Exception):
         _ = list1 * list2
+
+
+@pytest.mark.parametrize(
+    "list1, list2, op, expected",
+    [
+        (
+            TypedList(range(1, 10)),
+            TypedList(range(2, 20, 2)),
+            IntTypedList.__eq__,
+            TypedList([0 for _ in range(1, 10)]),
+        ),
+        (
+            TypedList([1.0, 2.0, 3.0]),
+            2.0,
+            FloatTypedList.__lt__,
+            TypedList([0.51, 0.51, 0.51]),
+        ),
+    ],
+)
+def test_div(list1, op, list2, expected):
+    assert op(list1 / list2, expected)
+
+
+@pytest.mark.parametrize(
+    "list1, list2", [(TypedList(range(10)), TypedList([0.1])), (TypedList("abc"), "a")]
+)
+def test_div_error(list1, list2):
+    with pytest.raises(Exception):
+        _ = list1 / list2

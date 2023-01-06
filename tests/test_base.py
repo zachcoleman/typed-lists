@@ -79,6 +79,29 @@ def test_len(list1, expected):
 
 
 @pytest.mark.parametrize(
+    "list1, expected", ((TypedList(range(10)), True), (TypedList(int), False))
+)
+def test_dunder_bool(list1, expected):
+    assert bool(list1) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    ((TypedList(range(10)), 0, True), (TypedList("abc"), "d", False)),
+)
+def test_dunder_contains(list1, value, expected):
+    assert (value in list1) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, expected",
+    ((TypedList(range(10)), list(range(10))), (TypedList("abc"), ["a", "b", "c"])),
+)
+def test_dunder_iter(list1, expected):
+    assert list(list1) == expected
+
+
+@pytest.mark.parametrize(
     "list1, index, expected",
     [
         (TypedList(range(10)), 0, 0),
@@ -121,3 +144,38 @@ def test_delitem(list1, index, expected):
     del list1[index]
     print(list1, expected)
     assert list1 == expected
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    (
+        (TypedList(range(10)), 0, 0),
+        (TypedList("abc"), "c", 2),
+        (TypedList("abc"), "d", None),
+    ),
+)
+def test_index(list1, value, expected):
+    assert list1.index(value) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    (
+        (TypedList(range(10)), 4, 4),
+        (TypedList("abc"), "c", 2),
+        (TypedList("abc"), "d", None),
+    ),
+)
+def test_find_any(list1, value, expected):
+    assert list1.find_any(value) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    (
+        (TypedList(range(10)), 4, TypedList([4])),
+        (TypedList("cabcc"), "c", TypedList([0, 3, 4])),
+    ),
+)
+def test_find_all(list1, value, expected):
+    assert list1.find_all(value) == expected

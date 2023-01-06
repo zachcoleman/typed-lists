@@ -75,11 +75,39 @@ impl FloatTypedList {
 /// FloatTypedList Comparison ///
 #[pymethods]
 impl FloatTypedList {
-    fn __richcmp__(&self, other: &Self, op: CompareOp) -> PyResult<bool> {
+    fn __richcmp__(&self, other: &PyAny, op: CompareOp) -> PyResult<BoolTypedList> {
         match op {
-            CompareOp::Lt => Ok(self.data < other.data),
-            CompareOp::Gt => Ok(self.data > other.data),
-            _ => Err(PyTypeError::new_err("Invalid comparison operator")),
+            CompareOp::Lt => {
+                if let Ok(other) = other.extract::<f64>() {
+                    let data = self.data.par_iter().map(|x| x < &other).collect();
+                    return Ok(BoolTypedList { data: data, _ix: 0 });
+                } else if let Ok(other) = other.extract::<Self>() {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a < b)
+                        .collect();
+                    return Ok(BoolTypedList { data: data, _ix: 0 });
+                }
+                Err(PyTypeError::new_err("Invalid type for comparison"))
+            }
+            CompareOp::Gt => {
+                if let Ok(other) = other.extract::<f64>() {
+                    let data = self.data.par_iter().map(|x| x > &other).collect();
+                    return Ok(BoolTypedList { data: data, _ix: 0 });
+                } else if let Ok(other) = other.extract::<Self>() {
+                    let data = self
+                        .data
+                        .par_iter()
+                        .zip(other.data.par_iter())
+                        .map(|(a, b)| a > b)
+                        .collect();
+                    return Ok(BoolTypedList { data: data, _ix: 0 });
+                }
+                Err(PyTypeError::new_err("Invalid type for comparison"))
+            }
+            _ => Err(PyTypeError::new_err("Invalid comparison for floats")),
         }
     }
 }
