@@ -63,7 +63,7 @@ def test_append(list1, value, expected):
 )
 def test_extend(list1, list2, expected):
     list1.extend(list2)
-    assert list1 == expected
+    assert (list1 == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -76,6 +76,75 @@ def test_extend(list1, list2, expected):
 )
 def test_len(list1, expected):
     assert len(list1) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, index, expected",
+    (
+        (TypedList(range(10)), 0, 0),
+        (TypedList(range(10)), None, 9),
+        (TypedList("abc"), 1, "b"),
+        (TypedList(range(10)), 100, IndexError),
+    ),
+)
+def test_pop(list1, index, expected):
+    if isinstance(expected, type) and issubclass(expected, Exception):
+        with pytest.raises(expected):
+            list1.pop(index)
+    else:
+        if index is None:
+            assert list1.pop() == expected
+        else:
+            assert list1.pop(index) == expected
+
+
+@pytest.mark.parametrize(
+    "list1, index, value, expected",
+    (
+        (TypedList(range(10)), 0, 100, TypedList([100] + list(range(10)))),
+        (TypedList("abc"), 2, "e", TypedList("abec")),
+    ),
+)
+def test_insert(list1, index, value, expected):
+    list1.insert(index, value)
+    assert (list1 == expected).all()
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    (
+        (TypedList([0, 1, 0]), 0, TypedList([1, 0])),
+        (TypedList("abc"), "b", TypedList("ac")),
+    ),
+)
+def test_remove(list1, value, expected):
+    list1.remove(value)
+    assert (list1 == expected).all()
+
+
+@pytest.mark.parametrize(
+    "list1, expected",
+    (
+        (TypedList(range(10)), TypedList(range(10)[::-1])),
+        (TypedList("abc"), TypedList("cba")),
+        (TypedList(int), TypedList(int)),
+    ),
+)
+def test_reverse(list1, expected):
+    list1.reverse()
+    assert (list1 == expected).all()
+
+
+@pytest.mark.parametrize(
+    "list1, value, expected",
+    (
+        (TypedList(range(10)), 0, 1),
+        (TypedList(range(10)), 100, 0),
+        (TypedList("aab"), "a", 2),
+    ),
+)
+def test_count(list1, value, expected):
+    assert list1.count(value) == expected
 
 
 @pytest.mark.parametrize(
@@ -114,7 +183,12 @@ def test_dunder_iter(list1, expected):
     ],
 )
 def test_getitem(list1, index, expected):
-    assert list1[index] == expected
+    if isinstance(
+        expected, (BoolTypedList, FloatTypedList, IntTypedList, StringTypedList)
+    ):
+        assert (list1[index] == expected).all()
+    else:
+        assert list1[index] == expected
 
 
 @pytest.mark.parametrize(
@@ -136,14 +210,13 @@ def test_setitem(list1, index, expected):
         (
             TypedList(range(10)),
             BoolTypedList([i % 2 == 0 for i in range(10)]),
-            TypedList(range(0, 10, 2)),
+            TypedList(range(1, 10, 2)),
         ),
     ],
 )
 def test_delitem(list1, index, expected):
     del list1[index]
-    print(list1, expected)
-    assert list1 == expected
+    assert (list1 == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -178,4 +251,4 @@ def test_find_any(list1, value, expected):
     ),
 )
 def test_find_all(list1, value, expected):
-    assert list1.find_all(value) == expected
+    assert (list1.find_all(value) == expected).all()

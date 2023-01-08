@@ -28,7 +28,7 @@ macro_rules! make_hash {
                         _ix: 0
                     })
                 }
-                fn count(&self) -> PyResult<HashMap<$type, usize>> {
+                fn count_all(&self) -> PyResult<HashMap<$type, usize>> {
                     Ok(self.data
                         .par_iter()
                         .fold(
