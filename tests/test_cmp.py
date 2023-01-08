@@ -12,7 +12,7 @@ from typed_lists import TypedList
     ],
 )
 def test_lt(list1, list2, expected):
-    assert (list1 < list2) == expected
+    assert ((list1 < list2) == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -29,7 +29,7 @@ def test_lt(list1, list2, expected):
     ],
 )
 def test_gt(list1, list2, expected):
-    assert (list1 > list2) == expected
+    assert ((list1 > list2) == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_gt(list1, list2, expected):
     ],
 )
 def test_le(list1, list2, expected):
-    assert (list1 <= list2) == expected
+    assert ((list1 <= list2) == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -54,14 +54,14 @@ def test_le(list1, list2, expected):
         (
             TypedList(range(10)),
             TypedList(range(10)),
-            TypedList([False for _ in range(10)]),
+            TypedList([True for _ in range(10)]),
         ),
         (TypedList([1]), 0, TypedList([True])),
-        (TypedList("abc"), "a", TypedList([False, True, True])),
+        (TypedList("abc"), "a", TypedList([True, True, True])),
     ],
 )
 def test_ge(list1, list2, expected):
-    assert (list1 >= list2) == expected
+    assert ((list1 >= list2) == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -76,7 +76,7 @@ def test_ge(list1, list2, expected):
     ],
 )
 def test_eq(list1, list2, expected):
-    assert (list1 == list2) == expected
+    assert ((list1 == list2) == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -87,8 +87,8 @@ def test_eq(list1, list2, expected):
             TypedList(range(10)),
             TypedList([False for _ in range(10)]),
         ),
-        (TypedList("abc"), TypedList("abd"), TypedList([True, True, False])),
+        (TypedList("abc"), TypedList("abd"), TypedList([False, False, True])),
     ],
 )
 def test_ne(list1, list2, expected):
-    assert (list1 != list2) == expected
+    assert ((list1 != list2) == expected).all()

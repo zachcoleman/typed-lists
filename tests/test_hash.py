@@ -13,7 +13,7 @@ from typed_lists import TypedList
     ],
 )
 def test_unique(list1, expected):
-    assert list1.unique() == expected
+    assert (list1.unique().sort() == expected.sort()).all()
 
 
 @pytest.mark.parametrize(
@@ -25,4 +25,4 @@ def test_unique(list1, expected):
     ],
 )
 def test_count(list1, expected):
-    assert list1.count() == expected
+    assert list1.count_all() == expected

@@ -46,7 +46,7 @@ from typed_lists._typed_lists_ext import BoolTypedList
     ],
 )
 def test_bool(list1, list2, op, expected):
-    assert op(list1, list2) == expected
+    assert (op(list1, list2) == expected).all()
 
 
 @pytest.mark.parametrize(

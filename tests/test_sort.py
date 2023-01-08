@@ -12,7 +12,7 @@ from typed_lists import TypedList
 )
 def test_sort_inplace(list1, expected):
     list1.sort_inplace()
-    assert list1 == expected
+    assert (list1 == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -23,7 +23,7 @@ def test_sort_inplace(list1, expected):
     ],
 )
 def test_sort(list1, expected):
-    assert list1.sort() == expected
+    assert (list1.sort() == expected).all()
 
 
 @pytest.mark.parametrize(
@@ -35,4 +35,4 @@ def test_sort(list1, expected):
     ],
 )
 def test_argsort(list1, expected):
-    assert list1.argsort() == expected
+    assert (list1.argsort() == expected).all()

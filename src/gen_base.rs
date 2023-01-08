@@ -65,6 +65,57 @@ macro_rules! make_base {
                     self.data.extend(item.data.clone());
                 }
 
+                #[pyo3(text_signature = "($self, index, /)")]
+                fn pop(&mut self, index: Option<isize>) -> PyResult<$type> {
+                    if let Some(ix) = index {
+                        if ix < -(self.data.len() as isize) || ix >= (self.data.len() as isize){
+                            return Err(PyIndexError::new_err("Index out of range"));
+                        }
+                        if ix < 0 {
+                            return Ok(self.data.remove((self.data.len() as isize + ix) as usize));
+                        }
+                        else {
+                            return Ok(self.data.remove(ix as usize));
+                        }
+                    } else {
+                        Ok(self.data.pop().unwrap())
+                    }
+                }
+
+                #[pyo3(text_signature = "($self, index, item /)")]
+                fn insert(&mut self, index: isize, item: $type) -> PyResult<()> {
+                    if index < -(self.data.len() as isize) || index > (self.data.len() as isize){
+                        return Err(PyIndexError::new_err("Index out of range"));
+                    }
+                    if index < 0 {
+                        self.data.insert((self.data.len() as isize + index) as usize, item);
+                    }
+                    else {
+                        self.data.insert(index as usize, item);
+                    }
+                    Ok(())
+                }
+
+                #[pyo3(text_signature = "($self, item, /)")]
+                fn remove(&mut self, item: $type) -> PyResult<()> {
+                    if let Some(index) = self.data.par_iter().position_first(|x| x == &item) {
+                        self.data.remove(index);
+                        Ok(())
+                    } else {
+                        Err(PyValueError::new_err("Item not found"))
+                    }
+                }
+
+                #[pyo3(text_signature = "($self, /)")]
+                fn reverse(&mut self) {
+                    self.data.reverse();
+                }
+
+                #[pyo3(text_signature = "($self, item, /)")]
+                fn count(&self, item: $type) -> PyResult<usize> {
+                    Ok(self.data.par_iter().filter(|x| x == &&item).count())
+                }
+    
                 /// ** Magic Methods ** ///
                 fn __len__(&self) -> PyResult<usize> {
                     self.len()
